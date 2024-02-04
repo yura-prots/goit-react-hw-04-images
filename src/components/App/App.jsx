@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { ThreeDots } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 
@@ -10,90 +10,79 @@ import Button from 'components/Button';
 
 import { Container, Loader } from './App.styled';
 
-class App extends Component {
-  state = {
-    query: '',
-    page: 1,
-    perPage: 12,
-    lastPage: null,
-    images: [],
-    isLoading: false,
-  };
+const initialPage = 1;
+const perPage = 12;
 
-  async componentDidUpdate(prevProps, prevState) {
-    const { query, page, perPage, lastPage } = this.state;
+const App = () => {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(initialPage);
+  const [lastPage, setLastPage] = useState(null);
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-    if (prevState.query !== query || prevState.page !== page) {
+  useEffect(() => {
+    if (query) {
+      return;
+    }
+
+    async function addImages() {
+      setIsLoading(true);
+      const searchQuery = query.split('/')[1];
+
       try {
-        this.setState({ isLoading: true });
-
-        const searchQuery = query.split('/')[1];
         const response = await fetchImages(searchQuery, page, perPage);
-
-        this.setState(prevState => ({
-          images: [...prevState.images, ...response.hits],
-        }));
 
         if (page === 1) {
           toast.info(`Wee found ${response.total} images`);
         }
 
-        this.setState({
-          lastPage: Math.ceil(response.total / perPage),
-        });
+        setLastPage(Math.ceil(response.total / perPage));
 
         if (page === lastPage) {
           toast.info('You have reached the end of the gallery');
         }
+
+        setImages(prevState => [...prevState, ...response.hits]);
       } catch (error) {
         return toast.error(error.message);
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
     }
-  }
+    addImages();
+  }, [query, page, lastPage]);
 
-  handleSubmit = newQuery => {
-    this.setState({
-      query: `${Date.now()}/${newQuery}`,
-      page: 1,
-      images: [],
-    });
+  const handleSubmit = newQuery => {
+    setQuery(`${Date.now()}/${newQuery}`);
+    setPage(1);
+    setImages([]);
   };
 
-  handleLoadMore = () => {
-    this.setState(prevState => {
-      return {
-        page: prevState.page + 1,
-      };
-    });
+  const handleLoadMore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  render() {
-    const { images, isLoading, page, lastPage } = this.state;
-
-    return (
-      <Container>
-        <Searchbar onSubmit={this.handleSubmit} />
-        {images.length > 0 && <ImageGallery images={images} />}
-        {isLoading && (
-          <Loader>
-            <ThreeDots
-              visible={true}
-              height="80"
-              width="80"
-              color="#3f51b5"
-              radius="9"
-              ariaLabel="three-dots-loading"
-            />
-          </Loader>
-        )}
-        {images.length > 0 && page !== lastPage && !isLoading && (
-          <Button onClick={this.handleLoadMore} />
-        )}
-      </Container>
-    );
-  }
-}
+  return (
+    <Container>
+      <Searchbar onSubmit={handleSubmit} />
+      {images.length > 0 && <ImageGallery images={images} />}
+      {isLoading && (
+        <Loader>
+          <ThreeDots
+            visible={true}
+            height="80"
+            width="80"
+            color="#3f51b5"
+            radius="9"
+            ariaLabel="three-dots-loading"
+          />
+        </Loader>
+      )}
+      {images.length > 0 && page !== lastPage && !isLoading && (
+        <Button onClick={handleLoadMore} />
+      )}
+    </Container>
+  );
+};
 
 export default App;
