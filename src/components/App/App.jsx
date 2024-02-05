@@ -10,41 +10,40 @@ import Button from 'components/Button';
 
 import { Container, Loader } from './App.styled';
 
-const initialPage = 1;
 const perPage = 12;
 
 const App = () => {
   const [query, setQuery] = useState('');
-  const [page, setPage] = useState(initialPage);
+  const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(null);
   const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (query) {
+    if (query === '') {
       return;
     }
 
     async function addImages() {
       setIsLoading(true);
-      const searchQuery = query.split('/')[1];
 
       try {
+        const searchQuery = query.split('/')[1];
         const response = await fetchImages(searchQuery, page, perPage);
 
         if (page === 1) {
           toast.info(`Wee found ${response.total} images`);
         }
-
         setLastPage(Math.ceil(response.total / perPage));
 
         if (page === lastPage) {
           toast.info('You have reached the end of the gallery');
         }
-
         setImages(prevState => [...prevState, ...response.hits]);
       } catch (error) {
-        return toast.error(error.message);
+        if (error.code !== 'ERR_CANCELED') {
+          return toast.error(error.message);
+        }
       } finally {
         setIsLoading(false);
       }
