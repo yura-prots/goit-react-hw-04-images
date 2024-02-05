@@ -37,10 +37,6 @@ const App = () => {
         if (page === 1) {
           toast.info(`Wee found ${response.total} images`);
         }
-
-        if (page === lastPage) {
-          toast.info('You have reached the end of the gallery');
-        }
       } catch (error) {
         if (error.code !== 'ERR_CANCELED') {
           return toast.error(error.message);
@@ -50,7 +46,13 @@ const App = () => {
       }
     }
     addImages();
-  }, [query, page, lastPage]);
+  }, [query, page]);
+
+  useEffect(() => {
+    if (page === lastPage) {
+      toast.info('You have reached the end of the gallery');
+    }
+  }, [page, lastPage]);
 
   const handleSubmit = newQuery => {
     setQuery(`${Date.now()}/${newQuery}`);
