@@ -21,7 +21,6 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log('useEffect');
     if (query === '') {
       return;
     }
