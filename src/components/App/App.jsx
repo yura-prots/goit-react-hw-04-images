@@ -16,10 +16,12 @@ const App = () => {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(null);
+  const [isLastPage, setIsLastPage] = useState(false);
   const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    console.log('useEffect');
     if (query === '') {
       return;
     }
@@ -50,6 +52,7 @@ const App = () => {
 
   useEffect(() => {
     if (page === lastPage) {
+      setIsLastPage(true);
       toast.info('You have reached the end of the gallery');
     }
   }, [page, lastPage]);
@@ -57,6 +60,7 @@ const App = () => {
   const handleSubmit = newQuery => {
     setQuery(`${Date.now()}/${newQuery}`);
     setPage(1);
+    setIsLastPage(false);
     setImages([]);
   };
 
@@ -80,7 +84,7 @@ const App = () => {
           />
         </Loader>
       )}
-      {images.length > 0 && page !== lastPage && !isLoading && (
+      {images.length > 0 && !isLastPage && !isLoading && (
         <Button onClick={handleLoadMore} />
       )}
     </Container>
