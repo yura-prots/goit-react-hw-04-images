@@ -31,15 +31,16 @@ const App = () => {
         const searchQuery = query.split('/')[1];
         const response = await fetchImages(searchQuery, page, perPage);
 
+        setLastPage(Math.ceil(response.total / perPage));
+        setImages(prevState => [...prevState, ...response.hits]);
+
         if (page === 1) {
           toast.info(`Wee found ${response.total} images`);
         }
-        setLastPage(Math.ceil(response.total / perPage));
 
         if (page === lastPage) {
           toast.info('You have reached the end of the gallery');
         }
-        setImages(prevState => [...prevState, ...response.hits]);
       } catch (error) {
         if (error.code !== 'ERR_CANCELED') {
           return toast.error(error.message);
